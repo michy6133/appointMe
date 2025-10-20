@@ -25,7 +25,7 @@ SECRET_KEY = 'cq5=ee7xxy7+v(_nfy_g9d135!y%j3zn*+lt7%si+li6=r3s$l'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['appointme.mchy.cloud','www.appointme.mchy.cloud']
+ALLOWED_HOSTS = ['appointme.mchy.cloud','www.appointme.mchy.cloud','localhost','127.0.0.1']
 
 
 # Application definition
