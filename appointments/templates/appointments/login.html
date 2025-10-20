@@ -19,19 +19,21 @@
             <form method="post" class="space-y-5">
                 {% csrf_token %}
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Adresse email</label>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Adresse e‑mail</label>
                     <div class="relative">
-                        <input id="email" name="email" type="email" required class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="vous@exemple.com">
+                        <input id="email" name="email" type="email" required class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="nom.prenom@entreprise.com" aria-describedby="email-help">
                         <i data-lucide="mail" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
                     </div>
+                    <p id="email-help" class="mt-1 text-xs text-gray-500">Utilisez votre adresse professionnelle si disponible.</p>
                 </div>
 
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
                     <div class="relative">
-                        <input id="password" name="password" type="password" required class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="••••••••">
+                        <input id="password" name="password" type="password" required class="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Votre mot de passe" aria-describedby="password-help">
                         <i data-lucide="lock" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
                     </div>
+                    <p id="password-help" class="mt-1 text-xs text-gray-500">Au moins 8 caractères. Évitez les mots de passe réutilisés.</p>
                 </div>
 
                 <div class="flex items-center justify-between">
