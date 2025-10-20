@@ -1,0 +1,116 @@
+{% extends 'appointments/base.html' %}
+
+{% block title %}Notifications - AppointMe{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'dashboard' %}" class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <div>
+                <h1 class="text-3xl font-semibold tracking-tight mb-2">Notifications</h1>
+                <p class="text-gray-600 text-sm">Rendez-vous à venir et rappels</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rendez-vous à venir -->
+    {% if upcoming_appointments %}
+    <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold">Rendez-vous à venir</h2>
+                <p class="text-sm text-gray-600">Prochains 7 jours</p>
+            </div>
+        </div>
+        
+        <div class="space-y-4">
+            {% for appointment in upcoming_appointments %}
+            <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" data-upcoming>
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i data-lucide="user" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-medium text-gray-900">{{ appointment.customer.full_name }}</h3>
+                        <span class="text-sm text-gray-500">{{ appointment.appointment_date|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">{{ appointment.service.name }}</p>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                        {% if appointment.status == 'scheduled' %}bg-yellow-100 text-yellow-800
+                        {% elif appointment.status == 'confirmed' %}bg-green-100 text-green-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ appointment.get_status_display }}
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'edit_appointment' appointment.id %}" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors">
+                        <i data-lucide="edit" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Rendez-vous en retard -->
+    {% if overdue_appointments %}
+    <div class="bg-white border border-red-200 rounded-xl p-6 mb-8">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold text-red-900">Rendez-vous en retard</h2>
+                <p class="text-sm text-red-600">Non confirmés depuis plus de 24h</p>
+            </div>
+        </div>
+        
+        <div class="space-y-4">
+            {% for appointment in overdue_appointments %}
+            <div class="flex items-center gap-4 p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors" data-overdue>
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <i data-lucide="user" class="w-6 h-6 text-red-600"></i>
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-medium text-gray-900">{{ appointment.customer.full_name }}</h3>
+                        <span class="text-sm text-gray-500">{{ appointment.appointment_date|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <p class="text-sm text-gray-600">{{ appointment.service.name }}</p>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {{ appointment.get_status_display }}
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'edit_appointment' appointment.id %}" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors">
+                        <i data-lucide="edit" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Aucune notification -->
+    {% if not upcoming_appointments and not overdue_appointments %}
+    <div class="text-center py-12">
+        <i data-lucide="bell-off" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune notification</h3>
+        <p class="text-gray-500">Vous n'avez pas de notifications pour le moment.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'appointments/base.html' %}
+
+{% block title %}Clients - AppointMe{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-semibold tracking-tight mb-2">Clients</h1>
+                <p class="text-gray-600 text-sm">Gérez votre base de clients</p>
+            </div>
+            <a href="{% url 'create_customer' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Nouveau client
+            </a>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+        <form method="get" class="flex gap-4">
+            <div class="flex-1">
+                <input type="text" name="search" placeholder="Rechercher par nom, prénom ou email..." 
+                       value="{{ request.GET.search }}" 
+                       class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                Rechercher
+            </button>
+            {% if request.GET.search %}
+            <a href="{% url 'customers' %}" class="px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
+                <i data-lucide="x" class="w-4 h-4 inline mr-2"></i>
+                Effacer
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Customers List -->
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        {% if customers %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Client</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Contact</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Rendez-vous</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Dernière visite</th>
+                        <th class="px-6 py-4 text-left text-sm font-medium text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for customer in customers %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <i data-lucide="user" class="w-5 h-5 text-gray-600"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">{{ customer.full_name }}</div>
+                                    <div class="text-sm text-gray-500">ID: {{ customer.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ customer.email }}</div>
+                            {% if customer.phone %}
+                            <div class="text-sm text-gray-500">{{ customer.phone }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">{{ customer.appointments.count }}</div>
+                            <div class="text-sm text-gray-500">rendez-vous</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% with customer.appointments.first as last_appointment %}
+                            {% if last_appointment %}
+                            <div class="text-sm text-gray-900">{{ last_appointment.appointment_date|date:"d/m/Y" }}</div>
+                            <div class="text-sm text-gray-500">{{ last_appointment.service.name }}</div>
+                            {% else %}
+                            <div class="text-sm text-gray-500">Jamais</div>
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'edit_customer' customer.id %}" 
+                                   class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                                   title="Modifier">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </a>
+                                <a href="{% url 'delete_customer' customer.id %}" 
+                                   class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                   title="Supprimer">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i data-lucide="users" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun client trouvé</h3>
+            <p class="text-gray-500 mb-6">
+                {% if request.GET.search %}
+                    Aucun client ne correspond à votre recherche.
+                {% else %}
+                    Commencez par ajouter votre premier client.
+                {% endif %}
+            </p>
+            <a href="{% url 'create_customer' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Ajouter un client
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

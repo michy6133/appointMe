@@ -1,0 +1,50 @@
+[
+  {
+    "model": "appointments.service",
+    "pk": 1,
+    "fields": {
+      "name": "Consultation générale",
+      "description": "Consultation médicale générale",
+      "duration": "00:30:00",
+      "price": "50.00",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "appointments.service",
+    "pk": 2,
+    "fields": {
+      "name": "Consultation spécialisée",
+      "description": "Consultation avec un spécialiste",
+      "duration": "00:45:00",
+      "price": "80.00",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "appointments.service",
+    "pk": 3,
+    "fields": {
+      "name": "Suivi médical",
+      "description": "Rendez-vous de suivi",
+      "duration": "00:20:00",
+      "price": "30.00",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "appointments.service",
+    "pk": 4,
+    "fields": {
+      "name": "Urgences",
+      "description": "Consultation d'urgence",
+      "duration": "00:15:00",
+      "price": "100.00",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  }
+]

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AppointMe - Système de gestion de rendez-vous{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%232563eb'/%3E%3Cstop offset='100%25' style='stop-color:%231d4ed8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23grad)'/%3E%3Ctext x='16' y='22' font-family='system-ui, -apple-system, sans-serif' font-size='14' font-weight='bold' text-anchor='middle' fill='white'%3EAM%3C/text%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased min-h-screen flex flex-col">
+    <!-- Navigation -->
+    {% if user.is_authenticated %}
+    <nav id="main-nav" class="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <div class="flex items-center gap-10">
+                    <a href="{% url 'dashboard' %}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm tracking-tight">AM</span>
+                        </div>
+                        <span class="text-xl font-semibold tracking-tight">AppointMe</span>
+                    </a>
+                    <div class="hidden md:flex items-center gap-1">
+                        <a href="{% url 'dashboard' %}" class="px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'dashboard' %}text-gray-900 bg-gray-50{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %} rounded-lg transition-colors">Dashboard</a>
+                        <a href="{% url 'calendar' %}" class="px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'calendar' %}text-gray-900 bg-gray-50{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %} rounded-lg transition-colors">Calendrier</a>
+                        <a href="{% url 'appointments' %}" class="px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'appointments' %}text-gray-900 bg-gray-50{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %} rounded-lg transition-colors">Rendez-vous</a>
+                        <a href="{% url 'customers' %}" class="px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'customers' %}text-gray-900 bg-gray-50{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %} rounded-lg transition-colors">Clients</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <!-- Recherche globale -->
+                    <div class="relative hidden sm:block">
+                        <input type="text" id="global-search" placeholder="Rechercher..." 
+                               class="w-64 pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-2.5"></i>
+                        
+                        <!-- Résultats de recherche -->
+                        <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden">
+                            <div class="p-4">
+                                <div id="search-loading" class="text-center py-4 hidden">
+                                    <i data-lucide="loader-2" class="w-5 h-5 text-gray-400 animate-spin mx-auto"></i>
+                                </div>
+                                <div id="search-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <a href="{% url 'notifications' %}" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
+                            <span id="notification-badge" class="absolute top-6 right-1.5 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+                        </a>
+                    </div>
+                    <!-- Menu profil -->
+                    <div class="flex items-center gap-3 pl-3 border-l border-gray-200">
+                        {% if user.staff_profile.photo %}
+                        <img src="{{ user.staff_profile.photo.url }}" alt="User" class="w-9 h-9 rounded-full ring-2 ring-gray-100 object-cover">
+                        {% else %}
+                        <div class="w-9 h-9 rounded-full ring-2 ring-gray-100 bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white text-xs font-semibold select-none">
+                            {% if user.first_name or user.last_name %}
+                                {{ user.first_name|default:""|slice:":1"|upper }}{{ user.last_name|default:""|slice:":1"|upper }}
+                            {% else %}
+                                {{ user.username|slice:":2"|upper }}
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="hidden sm:block">
+                            <div class="text-sm font-medium">{{ user.get_full_name|default:user.username }}</div>
+                            <!-- <div class="text-xs text-gray-500">Admin</div> -->
+                        </div>
+                        <div class="relative">
+                            <button id="profile-menu-toggle" class="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </button>
+                            <div id="profile-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden border border-gray-200">
+                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                                    Mon profil
+                                </a>
+                                <a href="{% url 'notifications' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i data-lucide="bell" class="w-4 h-4 inline mr-2"></i>
+                                    Notifications
+                                </a>
+                                <div class="border-t border-gray-200 my-1"></div>
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                                    Déconnexion
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="fixed top-4 right-4 z-50">
+        {% for message in messages %}
+        <div class="mb-2 p-4 rounded-lg shadow-lg {% if message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% if user.is_authenticated %}
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+            <div class="text-center text-sm text-gray-500">
+                <p>&copy; 2024 AppointMe. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Auto-hide messages after 5 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.fixed.top-4.right-4 > div');
+            messages.forEach(function(message) {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 0.5s';
+                setTimeout(function() {
+                    message.remove();
+                }, 500);
+            });
+        }, 5000);
+
+        // Recherche globale
+        let searchTimeout;
+        const searchInput = document.getElementById('global-search');
+        const searchResults = document.getElementById('search-results');
+        const searchLoading = document.getElementById('search-loading');
+        const searchContent = document.getElementById('search-content');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                if (query.length < 2) {
+                    searchResults.classList.add('hidden');
+                    return;
+                }
+
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performSearch(query);
+                }, 300);
+            });
+
+            // Fermer les résultats en cliquant ailleurs
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.classList.add('hidden');
+                }
+            });
+        }
+
+        function performSearch(query) {
+            searchLoading.classList.remove('hidden');
+            searchContent.innerHTML = '';
+            searchResults.classList.remove('hidden');
+
+            fetch(`/api/search/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    searchLoading.classList.add('hidden');
+                    displaySearchResults(data);
+                })
+                .catch(error => {
+                    searchLoading.classList.add('hidden');
+                    searchContent.innerHTML = '<p class="text-red-500 text-sm">Erreur lors de la recherche</p>';
+                });
+        }
+
+        function displaySearchResults(data) {
+            let html = '';
+            
+            if (data.appointments.length > 0) {
+                html += '<div class="mb-4"><h4 class="font-medium text-gray-900 mb-2">Rendez-vous</h4>';
+                data.appointments.forEach(appointment => {
+                    html += `<a href="${appointment.url}" class="block p-2 hover:bg-gray-50 rounded text-sm">
+                        <div class="font-medium">${appointment.customer} - ${appointment.service}</div>
+                        <div class="text-gray-500">${appointment.date} • ${appointment.status}</div>
+                    </a>`;
+                });
+                html += '</div>';
+            }
+
+            if (data.customers.length > 0) {
+                html += '<div class="mb-4"><h4 class="font-medium text-gray-900 mb-2">Clients</h4>';
+                data.customers.forEach(customer => {
+                    html += `<a href="${customer.url}" class="block p-2 hover:bg-gray-50 rounded text-sm">
+                        <div class="font-medium">${customer.name}</div>
+                        <div class="text-gray-500">${customer.email}</div>
+                    </a>`;
+                });
+                html += '</div>';
+            }
+
+            if (data.services.length > 0) {
+                html += '<div class="mb-4"><h4 class="font-medium text-gray-900 mb-2">Services</h4>';
+                data.services.forEach(service => {
+                    html += `<a href="${service.url}" class="block p-2 hover:bg-gray-50 rounded text-sm">
+                        <div class="font-medium">${service.name}</div>
+                        <div class="text-gray-500">${service.duration} • ${service.price}€</div>
+                    </a>`;
+                });
+                html += '</div>';
+            }
+
+            if (html === '') {
+                html = '<p class="text-gray-500 text-sm">Aucun résultat trouvé</p>';
+            }
+
+            searchContent.innerHTML = html;
+        }
+
+        // Menu profil
+        const profileMenuToggle = document.getElementById('profile-menu-toggle');
+        const profileMenu = document.getElementById('profile-menu');
+
+        if (profileMenuToggle && profileMenu) {
+            profileMenuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                profileMenu.classList.toggle('hidden');
+            });
+
+            // Fermer le menu en cliquant ailleurs
+            document.addEventListener('click', function(e) {
+                if (!profileMenuToggle.contains(e.target) && !profileMenu.contains(e.target)) {
+                    profileMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        // Charger les notifications
+        function loadNotifications() {
+            fetch('/notifications/')
+                .then(response => response.text())
+                .then(html => {
+                    // Extraire le nombre de notifications du HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const upcomingCount = doc.querySelectorAll('[data-upcoming]').length;
+                    const overdueCount = doc.querySelectorAll('[data-overdue]').length;
+                    
+                    const badge = document.getElementById('notification-badge');
+                    if (upcomingCount + overdueCount > 0) {
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                })
+                .catch(error => console.log('Erreur lors du chargement des notifications'));
+        }
+
+        // Charger les notifications au chargement de la page
+        loadNotifications();
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
