@@ -1,0 +1,89 @@
+{% extends 'appointments/base.html' %}
+{% load static %}
+
+{% block title %}Supprimer le service{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- En-tête -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <a href="{% url 'services' %}" class="text-gray-500 hover:text-gray-700 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-900">Supprimer le service</h1>
+        </div>
+        <p class="text-gray-600">Cette action est irréversible</p>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="max-w-2xl">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">
+                        Attention : Suppression définitive
+                    </h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <p>Vous êtes sur le point de supprimer définitivement le service <strong>"{{ service.name }}"</strong>.</p>
+                        <p class="mt-1">Cette action supprimera également tous les rendez-vous associés à ce service.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations du service -->
+        <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Informations du service</h3>
+            <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Nom</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ service.name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Prix</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ service.price }} FCFA</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Durée</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        {{ service.duration }}
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Statut</dt>
+                    <dd class="mt-1">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {% if service.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {% if service.is_active %}Actif{% else %}Inactif{% endif %}
+                        </span>
+                    </dd>
+                </div>
+                {% if service.description %}
+                    <div class="sm:col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">Description</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ service.description }}</dd>
+                    </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Actions -->
+        <form method="POST" class="flex gap-4">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                Supprimer définitivement
+            </button>
+            <a href="{% url 'services' %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                Annuler
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

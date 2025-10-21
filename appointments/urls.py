@@ -25,6 +25,12 @@ urlpatterns = [
     path('customers/<int:customer_id>/edit/', views.edit_customer_view, name='edit_customer'),
     path('customers/<int:customer_id>/delete/', views.delete_customer_view, name='delete_customer'),
     
+    # Gestion des services
+    path('services/', views.services_view, name='services'),
+    path('services/create/', views.create_service_view, name='create_service'),
+    path('services/<int:service_id>/edit/', views.edit_service_view, name='edit_service'),
+    path('services/<int:service_id>/delete/', views.delete_service_view, name='delete_service'),
+    
     # API
     path('api/appointments/by-date/', views.api_appointments_by_date, name='api_appointments_by_date'),
     path('api/search/', views.global_search, name='global_search'),

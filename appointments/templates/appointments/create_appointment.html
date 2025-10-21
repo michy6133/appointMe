@@ -41,7 +41,7 @@
                         <option value="">Sélectionner un service</option>
                         {% for service in services %}
                         <option value="{{ service.id }}" data-duration="{{ service.duration.total_seconds|floatformat:0 }}">
-                            {{ service.name }} ({{ service.duration }} - {{ service.price }}€)
+                            {{ service.name }} ({{ service.duration }} - {{ service.price }} FCFA)
                         </option>
                         {% endfor %}
                     </select>

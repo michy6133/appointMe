@@ -25,11 +25,12 @@ class Command(BaseCommand):
             self.stdout.write('Utilisateur admin créé (admin/admin123)')
 
         # Créer des services
+        admin_user = User.objects.get(username='admin')
         services_data = [
-            {'name': 'Consultation générale', 'duration': timedelta(minutes=30), 'price': 50.00},
-            {'name': 'Consultation spécialisée', 'duration': timedelta(minutes=45), 'price': 80.00},
-            {'name': 'Suivi médical', 'duration': timedelta(minutes=20), 'price': 30.00},
-            {'name': 'Urgences', 'duration': timedelta(minutes=15), 'price': 100.00},
+            {'name': 'Consultation générale', 'duration': timedelta(minutes=30), 'price': 5000},
+            {'name': 'Consultation spécialisée', 'duration': timedelta(minutes=45), 'price': 8000},
+            {'name': 'Suivi médical', 'duration': timedelta(minutes=20), 'price': 3000},
+            {'name': 'Urgences', 'duration': timedelta(minutes=15), 'price': 10000},
         ]
 
         services = []
@@ -40,7 +41,8 @@ class Command(BaseCommand):
                     'description': f"Service de {service_data['name'].lower()}",
                     'duration': service_data['duration'],
                     'price': service_data['price'],
-                    'is_active': True
+                    'is_active': True,
+                    'created_by': admin_user
                 }
             )
             services.append(service)
@@ -60,14 +62,16 @@ class Command(BaseCommand):
         for customer_data in customers_data:
             customer, created = Customer.objects.get_or_create(
                 email=customer_data['email'],
-                defaults=customer_data
+                defaults={
+                    **customer_data,
+                    'created_by': admin_user
+                }
             )
             customers.append(customer)
             if created:
                 self.stdout.write(f'Client créé: {customer.full_name}')
 
         # Créer des rendez-vous
-        admin_user = User.objects.get(username='admin')
         today = datetime.now().date()
         
         for i in range(20):
@@ -110,6 +114,7 @@ class Command(BaseCommand):
                     'close_time': '18:00' if is_open else '12:00',
                     'lunch_start': '12:00' if is_open else None,
                     'lunch_end': '14:00' if is_open else None,
+                    'created_by': admin_user
                 }
             )
 

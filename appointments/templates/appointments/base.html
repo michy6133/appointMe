@@ -27,6 +27,7 @@
                         <a href="{% url 'calendar' %}" class="px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'calendar' %}text-gray-900 bg-gray-50{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %} rounded-lg transition-colors">Calendrier</a>
                         <a href="{% url 'appointments' %}" class="px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'appointments' %}text-gray-900 bg-gray-50{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %} rounded-lg transition-colors">Rendez-vous</a>
                         <a href="{% url 'customers' %}" class="px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'customers' %}text-gray-900 bg-gray-50{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %} rounded-lg transition-colors">Clients</a>
+                        <a href="{% url 'services' %}" class="px-3 py-2 text-sm font-medium {% if request.resolver_match.url_name == 'services' %}text-gray-900 bg-gray-50{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-50{% endif %} rounded-lg transition-colors">Services</a>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -119,7 +120,7 @@
     <footer class="bg-white border-t border-gray-200 mt-auto">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
             <div class="text-center text-sm text-gray-500">
-                <p>&copy; 2024 AppointMe. Tous droits réservés.</p>
+                <p>&copy; {% now "Y" %} AppointMe. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
@@ -218,7 +219,7 @@
                 data.services.forEach(service => {
                     html += `<a href="${service.url}" class="block p-2 hover:bg-gray-50 rounded text-sm">
                         <div class="font-medium">${service.name}</div>
-                        <div class="text-gray-500">${service.duration} • ${service.price}€</div>
+                        <div class="text-gray-500">${service.duration} • ${service.price} FCFA</div>
                     </a>`;
                 });
                 html += '</div>';

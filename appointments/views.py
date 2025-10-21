@@ -98,28 +98,33 @@ def dashboard_view(request):
     last_week_start = start_of_week - timedelta(days=7)
     last_week_end = end_of_week - timedelta(days=7)
     
-    # Statistiques
+    # Statistiques (filtrées par créateur)
     today_appointments = Appointment.objects.filter(
-        appointment_date__date=today
+        appointment_date__date=today,
+        created_by=request.user
     ).count()
     
     yesterday_appointments = Appointment.objects.filter(
-        appointment_date__date=yesterday
+        appointment_date__date=yesterday,
+        created_by=request.user
     ).count()
     
     pending_appointments = Appointment.objects.filter(
-        status='scheduled'
+        status='scheduled',
+        created_by=request.user
     ).count()
     
     week_appointments = Appointment.objects.filter(
-        appointment_date__date__range=[start_of_week, end_of_week]
+        appointment_date__date__range=[start_of_week, end_of_week],
+        created_by=request.user
     ).count()
     
     last_week_appointments = Appointment.objects.filter(
-        appointment_date__date__range=[last_week_start, last_week_end]
+        appointment_date__date__range=[last_week_start, last_week_end],
+        created_by=request.user
     ).count()
     
-    total_customers = Customer.objects.count()
+    total_customers = Customer.objects.filter(created_by=request.user).count()
     
     # Calcul des variations
     today_vs_yesterday = today_appointments - yesterday_appointments
@@ -128,14 +133,16 @@ def dashboard_view(request):
     if last_week_appointments > 0:
         week_percentage = round((week_vs_last_week / last_week_appointments) * 100)
     
-    # Rendez-vous récents
+    # Rendez-vous récents (filtrés par créateur)
     recent_appointments = Appointment.objects.filter(
-        appointment_date__date=today
+        appointment_date__date=today,
+        created_by=request.user
     ).select_related('customer', 'service').order_by('appointment_date')[:5]
     
-    # Rendez-vous à venir
+    # Rendez-vous à venir (filtrés par créateur)
     upcoming_appointments = Appointment.objects.filter(
-        appointment_date__gte=timezone.now()
+        appointment_date__gte=timezone.now(),
+        created_by=request.user
     ).select_related('customer', 'service').order_by('appointment_date')[:5]
     
     context = {
@@ -195,10 +202,11 @@ def calendar_view(request):
         next_date = first_day.replace(year=next_month_year[0], month=next_month_year[1], day=1)
         days = [first_day.replace(day=d) for d in range(1, last_day_num + 1)]
 
-    # Récupérer les rendez-vous dans l'intervalle
+    # Récupérer les rendez-vous dans l'intervalle (filtrés par créateur)
     appointments = Appointment.objects.filter(
         appointment_date__date__gte=start_date,
         appointment_date__date__lte=end_date,
+        created_by=request.user
     ).select_related('customer', 'service')
 
     # Grouper par date
@@ -237,7 +245,7 @@ def calendar_view(request):
 @login_required
 def appointments_view(request):
     """Vue de gestion des rendez-vous"""
-    appointments = Appointment.objects.select_related('customer', 'service').order_by('-appointment_date')
+    appointments = Appointment.objects.filter(created_by=request.user).select_related('customer', 'service').order_by('-appointment_date')
     
     # Filtres
     status_filter = request.GET.get('status')
@@ -264,7 +272,7 @@ def appointments_view(request):
 @login_required
 def customers_view(request):
     """Vue de gestion des clients"""
-    customers = Customer.objects.all().order_by('last_name', 'first_name')
+    customers = Customer.objects.filter(created_by=request.user).order_by('last_name', 'first_name')
     
     # Recherche
     search = request.GET.get('search')
@@ -318,8 +326,8 @@ def create_appointment_view(request):
         except ValueError:
             messages.error(request, 'Format de date/heure invalide.')
     
-    customers = Customer.objects.all().order_by('last_name', 'first_name')
-    services = Service.objects.filter(is_active=True)
+    customers = Customer.objects.filter(created_by=request.user).order_by('last_name', 'first_name')
+    services = Service.objects.filter(is_active=True, created_by=request.user)
 
     # Pré-remplir la date depuis la query string si fournie
     default_date = request.GET.get('date') or ''
@@ -338,7 +346,7 @@ def create_appointment_view(request):
 @login_required
 def edit_appointment_view(request, appointment_id):
     """Vue de modification de rendez-vous"""
-    appointment = get_object_or_404(Appointment, id=appointment_id)
+    appointment = get_object_or_404(Appointment, id=appointment_id, created_by=request.user)
     
     if request.method == 'POST':
         appointment.customer_id = request.POST.get('customer')
@@ -361,8 +369,8 @@ def edit_appointment_view(request, appointment_id):
         except ValueError:
             messages.error(request, 'Format de date/heure invalide.')
     
-    customers = Customer.objects.all().order_by('last_name', 'first_name')
-    services = Service.objects.filter(is_active=True)
+    customers = Customer.objects.filter(created_by=request.user).order_by('last_name', 'first_name')
+    services = Service.objects.filter(is_active=True, created_by=request.user)
     
     context = {
         'appointment': appointment,
@@ -377,7 +385,7 @@ def edit_appointment_view(request, appointment_id):
 @login_required
 def delete_appointment_view(request, appointment_id):
     """Vue de suppression de rendez-vous"""
-    appointment = get_object_or_404(Appointment, id=appointment_id)
+    appointment = get_object_or_404(Appointment, id=appointment_id, created_by=request.user)
     
     if request.method == 'POST':
         appointment.delete()
@@ -403,7 +411,8 @@ def create_customer_view(request):
                 last_name=last_name,
                 email=email,
                 phone=phone,
-                address=address
+                address=address,
+                created_by=request.user
             )
             messages.success(request, 'Client créé avec succès.')
             return redirect('customers')
@@ -416,7 +425,7 @@ def create_customer_view(request):
 @login_required
 def edit_customer_view(request, customer_id):
     """Vue de modification de client"""
-    customer = get_object_or_404(Customer, id=customer_id)
+    customer = get_object_or_404(Customer, id=customer_id, created_by=request.user)
     
     if request.method == 'POST':
         customer.first_name = request.POST.get('first_name')
@@ -438,7 +447,7 @@ def edit_customer_view(request, customer_id):
 @login_required
 def delete_customer_view(request, customer_id):
     """Vue de suppression de client"""
-    customer = get_object_or_404(Customer, id=customer_id)
+    customer = get_object_or_404(Customer, id=customer_id, created_by=request.user)
     
     if request.method == 'POST':
         customer.delete()
@@ -460,7 +469,8 @@ def api_appointments_by_date(request):
     try:
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
         appointments = Appointment.objects.filter(
-            appointment_date__date=date
+            appointment_date__date=date,
+            created_by=request.user
         ).select_related('customer', 'service')
         
         data = []
@@ -490,13 +500,14 @@ def global_search(request):
     }
     
     if query and len(query) >= 2:
-        # Recherche dans les rendez-vous
+        # Recherche dans les rendez-vous (filtrés par créateur)
         appointments = Appointment.objects.filter(
             Q(customer__first_name__icontains=query) |
             Q(customer__last_name__icontains=query) |
             Q(customer__email__icontains=query) |
             Q(service__name__icontains=query) |
-            Q(notes__icontains=query)
+            Q(notes__icontains=query),
+            created_by=request.user
         ).select_related('customer', 'service')[:10]
         
         for appointment in appointments:
@@ -509,11 +520,12 @@ def global_search(request):
                 'url': f'/appointments/{appointment.id}/edit/'
             })
         
-        # Recherche dans les clients
+        # Recherche dans les clients (filtrés par créateur)
         customers = Customer.objects.filter(
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
-            Q(email__icontains=query)
+            Q(email__icontains=query),
+            created_by=request.user
         )[:10]
         
         for customer in customers:
@@ -525,10 +537,11 @@ def global_search(request):
                 'url': f'/customers/{customer.id}/edit/'
             })
         
-        # Recherche dans les services
+        # Recherche dans les services (filtrés par créateur)
         services = Service.objects.filter(
             Q(name__icontains=query) |
-            Q(description__icontains=query)
+            Q(description__icontains=query),
+            created_by=request.user
         )[:10]
         
         for service in services:
@@ -553,7 +566,8 @@ def notifications_view(request):
     upcoming_appointments = Appointment.objects.filter(
         appointment_date__date__gte=today,
         appointment_date__date__lte=next_week,
-        status__in=['scheduled', 'confirmed']
+        status__in=['scheduled', 'confirmed'],
+        created_by=request.user
     ).select_related('customer', 'service').order_by('appointment_date')
     
     # Rendez-vous en retard (non confirmés depuis plus de 24h)
@@ -561,7 +575,8 @@ def notifications_view(request):
     overdue_appointments = Appointment.objects.filter(
         appointment_date__date__lt=today,
         status='scheduled',
-        created_at__lt=timezone.now() - timedelta(hours=24)
+        created_at__lt=timezone.now() - timedelta(hours=24),
+        created_by=request.user
     ).select_related('customer', 'service')
     
     context = {
@@ -606,3 +621,98 @@ def profile_view(request):
         return redirect('profile')
     
     return render(request, 'appointments/profile.html')
+
+
+@login_required
+def services_view(request):
+    """Vue de gestion des services"""
+    services = Service.objects.filter(created_by=request.user).order_by('name')
+    
+    # Recherche
+    search = request.GET.get('search')
+    if search:
+        services = services.filter(
+            Q(name__icontains=search) |
+            Q(description__icontains=search)
+        )
+    
+    context = {
+        'services': services,
+    }
+    
+    return render(request, 'appointments/services.html', context)
+
+
+@login_required
+def create_service_view(request):
+    """Vue de création de service"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description', '')
+        duration_hours = int(request.POST.get('duration_hours', 0))
+        duration_minutes = int(request.POST.get('duration_minutes', 0))
+        price = request.POST.get('price')
+        
+        try:
+            duration = timedelta(hours=duration_hours, minutes=duration_minutes)
+            service = Service.objects.create(
+                name=name,
+                description=description,
+                duration=duration,
+                price=price,
+                created_by=request.user
+            )
+            messages.success(request, 'Service créé avec succès.')
+            return redirect('services')
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la création du service: {str(e)}')
+    
+    return render(request, 'appointments/create_service.html')
+
+
+@login_required
+def edit_service_view(request, service_id):
+    """Vue de modification de service"""
+    service = get_object_or_404(Service, id=service_id, created_by=request.user)
+    
+    if request.method == 'POST':
+        service.name = request.POST.get('name')
+        service.description = request.POST.get('description', '')
+        duration_hours = int(request.POST.get('duration_hours', 0))
+        duration_minutes = int(request.POST.get('duration_minutes', 0))
+        service.price = request.POST.get('price')
+        service.is_active = request.POST.get('is_active') == 'on'
+        
+        try:
+            service.duration = timedelta(hours=duration_hours, minutes=duration_minutes)
+            service.save()
+            messages.success(request, 'Service modifié avec succès.')
+            return redirect('services')
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la modification du service: {str(e)}')
+    
+    # Convertir la durée en heures et minutes pour l'affichage
+    total_minutes = int(service.duration.total_seconds() // 60)
+    hours = total_minutes // 60
+    minutes = total_minutes % 60
+    
+    context = {
+        'service': service,
+        'duration_hours': hours,
+        'duration_minutes': minutes,
+    }
+    
+    return render(request, 'appointments/edit_service.html', context)
+
+
+@login_required
+def delete_service_view(request, service_id):
+    """Vue de suppression de service"""
+    service = get_object_or_404(Service, id=service_id, created_by=request.user)
+    
+    if request.method == 'POST':
+        service.delete()
+        messages.success(request, 'Service supprimé avec succès.')
+        return redirect('services')
+    
+    return render(request, 'appointments/delete_service.html', {'service': service})
